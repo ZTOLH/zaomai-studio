@@ -1,0 +1,15 @@
+ZAOMAI LAB / 浏览器验收记录
+时间：2026-10-30（Asia/Shanghai）
+环境：Windows / Chrome headless / file:// / 48kHz 立体声 / 22.5s 内置示例「霓虹炸街」
+
+autotest=full: ok=true errors=[]
+normal       LUFS -8.2277  TP -0.8500  peak -4.622  RMS -7.592  crest 2.970  1634ms
+super        LUFS -6.3622  TP -0.6500  peak -4.559  RMS -6.002  crest 1.443  2600ms
+promax       LUFS -4.9831  TP -0.4500  peak -4.361  RMS -4.793  crest 0.433  1385ms
+firecracker  LUFS -4.0183  TP -0.2500  peak -3.651  RMS -4.194  crest 0.543  2755ms
+
+浏览器导出 Blob：
+  wav16: 4320044 bytes / audio/wav
+  mp3: 540864 bytes / audio/mpeg
+  flac: 2562232 bytes / audio/flac
+  ogg: 394464 bytes / audio/ogg

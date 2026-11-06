@@ -1,0 +1,80 @@
+=== browser_44100_mp3.mp3
+codec_name=mp3
+sample_fmt=fltp
+sample_rate=44100
+channels=2
+duration=22.543667
+bit_rate=192000
+duration=22.543667
+
+=== browser_44100_wav16.wav
+codec_name=pcm_s16le
+sample_fmt=s16
+sample_rate=44100
+channels=2
+duration=22.500000
+bit_rate=1411200
+duration=22.500000
+
+=== browser_aiff.aiff
+codec_name=pcm_s16be
+sample_fmt=s16
+sample_rate=48000
+channels=2
+duration=22.500000
+bit_rate=1536000
+duration=22.500000
+
+=== browser_flac.flac
+codec_name=flac
+sample_fmt=s16
+sample_rate=48000
+channels=2
+duration=22.500000
+bit_rate=N/A
+duration=22.500000
+
+=== browser_mp3.mp3
+codec_name=mp3
+sample_fmt=fltp
+sample_rate=48000
+channels=2
+duration=22.536000
+bit_rate=192000
+duration=22.536000
+
+=== browser_ogg.ogg
+codec_name=opus
+sample_fmt=fltp
+sample_rate=48000
+channels=2
+duration=22.506500
+bit_rate=N/A
+duration=22.506500
+
+=== browser_wav16.wav
+codec_name=pcm_s16le
+sample_fmt=s16
+sample_rate=48000
+channels=2
+duration=22.500000
+bit_rate=1536000
+duration=22.500000
+
+=== browser_wav24.wav
+codec_name=pcm_s24le
+sample_fmt=s32
+sample_rate=48000
+channels=2
+duration=22.500000
+bit_rate=2304000
+duration=22.500000
+
+=== browser_wav32f.wav
+codec_name=pcm_f32le
+sample_fmt=flt
+sample_rate=48000
+channels=2
+duration=22.500000
+bit_rate=3072000
+duration=22.500000

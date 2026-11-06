@@ -1,0 +1,72 @@
+{
+  "ok": true,
+  "version": "1.0.0",
+  "mode": "full",
+  "presets": [
+    {
+      "id": "normal",
+      "lufs": -8.227720929598744,
+      "truePeakDb": -0.8499998718987387,
+      "peakDb": -4.622420897776287,
+      "rmsDb": -7.592264340680837,
+      "crestDb": 2.9698434429045504,
+      "processingMs": 1633.8999999994412,
+      "duration": 22.5
+    },
+    {
+      "id": "super",
+      "lufs": -6.362248110536918,
+      "truePeakDb": -0.6500003428603383,
+      "peakDb": -4.55912777000484,
+      "rmsDb": -6.002464676608207,
+      "crestDb": 1.443336906603367,
+      "processingMs": 2599.5,
+      "duration": 22.5
+    },
+    {
+      "id": "promax",
+      "lufs": -4.983073167485436,
+      "truePeakDb": -0.44999992815087464,
+      "peakDb": -4.360739490907844,
+      "rmsDb": -4.79336799432023,
+      "crestDb": 0.4326285034123858,
+      "processingMs": 1385,
+      "duration": 22.5
+    },
+    {
+      "id": "firecracker",
+      "lufs": -4.018285720096406,
+      "truePeakDb": -0.25000017069023683,
+      "peakDb": -3.650760511044637,
+      "rmsDb": -4.193958568158677,
+      "crestDb": 0.54319805711404,
+      "processingMs": 2755.2999999998137,
+      "duration": 22.5
+    }
+  ],
+  "exports": {
+    "wav16": {
+      "size": 4320044,
+      "type": "audio/wav"
+    },
+    "mp3": {
+      "size": 540864,
+      "type": "audio/mpeg"
+    },
+    "flac": {
+      "size": 2562232,
+      "type": "audio/flac"
+    },
+    "ogg": {
+      "size": 394464,
+      "type": "audio/ogg"
+    }
+  },
+  "errors": [],
+  "demo": {
+    "name": "霓虹炸街（内置示例）",
+    "duration": 22.5,
+    "sampleRate": 48000,
+    "channels": 2
+  }
+}

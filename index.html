@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07080a">
+<title>炸麦实验室 ZAOMAI LAB · 四档炸麦音乐生成器</title>
+<meta name="description" content="纯浏览器四档炸麦生成器：普通炸麦版、超级炸麦版、Pro Max 炸麦版、极致纯响鞭炮炸麦版。支持 WAV / MP3 / FLAC / OGG / AIFF 导出，本地处理，不上传。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2307080a'/%3E%3Cpath d='M8 40h8l6-22 8 38 8-30 6 14h12' fill='none' stroke='%23ff4d00' stroke-width='6' stroke-linejoin='bevel'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="brand" href="#top" aria-label="炸麦实验室首页">
+    <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+    <span class="brand-word">ZAOMAI<em>LAB</em></span>
+  </a>
+  <nav class="topnav" aria-label="主导航">
+    <a href="#console">工作台</a>
+    <a href="#levels">四档火力</a>
+    <a href="#export">导出</a>
+    <a href="#guide">使用说明</a>
+  </nav>
+  <div class="topbar-meta">
+    <span class="live-dot" aria-hidden="true"></span>
+    <span>浏览器内处理 · 文件不上传</span>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow"><span>WEB AUDIO LOUDNESS WORKSTATION</span><span class="eyebrow-rule"></span><span>NO.01</span></p>
+        <h1 id="hero-title">把一首歌<br><em>炸成一片火海。</em></h1>
+        <p class="hero-sub">四档递进响度，从「普通炸麦版」到「极致纯响鞭炮炸麦版」。<br class="br-wide">拖入你的歌，或者直接用内置合成曲试爆。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#console">进入工作台 <span class="btn-arrow" aria-hidden="true">↘</span></a>
+          <button class="btn btn-ghost" id="btn-hero-demo" type="button">载入示例曲</button>
+        </div>
+        <dl class="hero-specs">
+          <div><dt>-8.0</dt><dd>LUFS 起步</dd></div>
+          <div><dt>-3.5</dt><dd>LUFS 极限</dd></div>
+          <div><dt>7</dt><dd>种导出格式</dd></div>
+          <div><dt>0</dt><dd>字节上传</dd></div>
+        </dl>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <div class="scope-frame">
+          <div class="scope-top"><span>SPECTRUM / MASTER</span><span class="scope-rec"><i></i>ARMED</span></div>
+          <canvas id="hero-canvas" width="720" height="420"></canvas>
+          <div class="scope-bottom"><span>48 kHz</span><span>TRUE PEAK</span><span>4-BAND</span></div>
+        </div>
+        <div class="sticker">
+          <span>WARNING</span>
+          <strong>HIGH<br>SPL</strong>
+          <small>PROTECT YOUR EARS</small>
+        </div>
+        <p class="visual-caption">模拟输出 · 非真实声压级</p>
+      </div>
+    </div>
+    <div class="hero-foot">
+      <div class="warning-strip"><span>⚠ 输出响度最高可达 -3.5 LUFS</span><span>先把耳机音量调低，再按播放</span></div>
+      <div class="ticker" aria-hidden="true"><div class="ticker-track">NO UPLOAD · NO MERCY · TRUE PEAK LIMITING · 四档火力 · BROWSER DSP · 48 kHz · 7 FORMATS · NO UPLOAD · NO MERCY · TRUE PEAK LIMITING · 四档火力 · BROWSER DSP ·</div></div>
+    </div>
+  </section>
+
+  <section class="workspace" id="console" aria-labelledby="console-title">
+    <div class="section-head">
+      <p class="section-index">01 / CONSOLE</p>
+      <div class="section-title-row">
+        <h2 id="console-title">炸麦工作台</h2>
+        <p class="section-desc">导入 → 选档 → 试爆 → 导出。所有处理都在本机浏览器完成，音频不会离开这台设备。</p>
+      </div>
+    </div>
+
+    <div class="console-grid">
+      <aside class="panel source-panel" aria-labelledby="source-title">
+        <div class="panel-head">
+          <h3 id="source-title">音源 <span class="en">SOURCE</span></h3>
+          <span class="tag" id="source-status">等待输入</span>
+        </div>
+
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="拖入音频文件或点击选择文件">
+          <div class="drop-icon" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <p class="drop-title">把歌拖进来</p>
+          <p class="drop-sub">或 <u>点击选择文件</u></p>
+          <p class="drop-formats">MP3 · WAV · FLAC · OGG · M4A · AAC · OPUS</p>
+          <span class="drop-corner tl" aria-hidden="true"></span>
+          <span class="drop-corner br" aria-hidden="true"></span>
+        </div>
+        <input type="file" id="file-input" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus,.aiff,.aif,.webm" hidden>
+
+        <div class="source-block">
+          <div class="block-head"><span>内置示例曲</span><span class="en">NO FILE NEEDED</span></div>
+          <div class="demo-list" id="demo-list"></div>
+        </div>
+
+        <div class="source-block source-loaded" id="source-info" hidden>
+          <div class="block-head"><span>当前音源</span><button type="button" class="text-btn" id="btn-clear">清空</button></div>
+          <p class="file-name" id="source-name">—</p>
+          <dl class="file-meta">
+            <div><dt>时长</dt><dd id="source-dur">—</dd></div>
+            <div><dt>采样率</dt><dd id="source-sr">—</dd></div>
+            <div><dt>声道</dt><dd id="source-ch">—</dd></div>
+          </dl>
+          <p class="file-note" id="source-note">文件只在本机解码，没有上传。</p>
+        </div>
+
+        <div class="source-foot">
+          <span class="lock-icon" aria-hidden="true">▣</span>
+          <p>本页没有服务器。音频仅存在于当前浏览器内存中。</p>
+        </div>
+      </aside>
+
+      <section class="panel main-panel" aria-labelledby="main-title">
+        <div class="panel-head">
+          <h3 id="main-title">试爆区 <span class="en">DETONATION BAY</span></h3>
+          <div class="chip-row">
+            <span class="chip" id="chip-sr">-- kHz</span>
+            <span class="chip" id="chip-dur">--:--</span>
+            <span class="chip chip-accent" id="chip-level">LV.0</span>
+          </div>
+        </div>
+
+        <div class="preset-grid" id="preset-grid" role="radiogroup" aria-label="炸麦档位"></div>
+
+        <div class="fire-row">
+          <button class="fire-btn" id="btn-process" type="button" disabled>
+            <span class="fire-btn-label">开始炸麦</span>
+            <span class="fire-btn-en">FIRE WHEN READY</span>
+            <span class="fire-btn-icon" aria-hidden="true">⌁</span>
+          </button>
+          <div class="fire-meta">
+            <p id="proc-hint">先导入一首歌，或载入示例曲。</p>
+            <p class="mono" id="proc-elapsed">—</p>
+          </div>
+        </div>
+
+        <div class="wave-panel">
+          <div class="wave-head">
+            <div>
+              <span class="wave-title">波形 / 响度轮廓</span>
+              <span class="wave-sub" id="wave-sub">原曲 vs 炸麦后</span>
+            </div>
+            <div class="wave-tools">
+              <span class="legend"><i class="leg-orig"></i>原曲</span>
+              <span class="legend"><i class="leg-fire"></i>炸麦</span>
+              <button type="button" class="switch" id="btn-ab" aria-pressed="false" title="切换原曲 / 炸麦后">
+                <span class="switch-dot"></span><span class="switch-text">A/B 原曲</span>
+              </button>
+            </div>
+          </div>
+          <div class="wave-stage" id="wave-stage">
+            <canvas id="wave-canvas" width="1200" height="210" aria-label="原曲与炸麦后的波形对比"></canvas>
+            <div class="wave-empty" id="wave-empty">
+              <span class="wave-empty-line"></span>
+              <p>等待音源 · 波形将在这里引爆</p>
+            </div>
+          </div>
+          <div class="wave-foot">
+            <span class="mono" id="wave-info">NO SIGNAL</span>
+            <span class="mono" id="wave-scale">0 — 1</span>
+          </div>
+        </div>
+
+        <div class="playbar" aria-label="播放控制">
+          <button class="play-btn" id="btn-play" type="button" aria-label="播放" disabled>
+            <span id="play-icon">▶</span>
+          </button>
+          <div class="time mono"><span id="time-now">00:00</span><span class="time-sep">/</span><span id="time-total">00:00</span></div>
+          <input type="range" id="seek" class="seek" min="0" max="1000" value="0" step="1" aria-label="播放进度">
+          <label class="vol" for="volume">
+            <span aria-hidden="true">VOL</span>
+            <input type="range" id="volume" min="0" max="100" value="32" step="1" aria-label="播放音量">
+            <output id="volume-out" for="volume">32%</output>
+          </label>
+        </div>
+
+        <div class="stats-grid" id="stats-grid" aria-live="polite">
+          <div class="stat"><span class="stat-label">综合响度</span><strong class="stat-value" id="stat-lufs">—</strong><span class="stat-unit">LUFS</span><span class="stat-target" id="stat-lufs-t">目标 —</span></div>
+          <div class="stat"><span class="stat-label">真峰值</span><strong class="stat-value" id="stat-tp">—</strong><span class="stat-unit">dBTP</span><span class="stat-target" id="stat-tp-t">天花板 —</span></div>
+          <div class="stat"><span class="stat-label">峰值电平</span><strong class="stat-value" id="stat-peak">—</strong><span class="stat-unit">dBFS</span><span class="stat-target">sample peak</span></div>
+          <div class="stat"><span class="stat-label">动态余量</span><strong class="stat-value" id="stat-crest">—</strong><span class="stat-unit">LU</span><span class="stat-target">crest factor</span></div>
+          <div class="stat"><span class="stat-label">RMS</span><strong class="stat-value" id="stat-rms">—</strong><span class="stat-unit">dBFS</span><span class="stat-target">whole file</span></div>
+          <div class="stat"><span class="stat-label">处理耗时</span><strong class="stat-value" id="stat-time">—</strong><span class="stat-unit">ms</span><span class="stat-target">本机 CPU</span></div>
+        </div>
+        <div class="stats-foot">
+          <span id="stats-verdict">尚未处理。选择档位，然后按下「开始炸麦」。</span>
+          <span class="mono" id="stats-preset">PRESET —</span>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="levels" id="levels" aria-labelledby="levels-title">
+    <div class="section-head">
+      <p class="section-index">02 / FIREPOWER</p>
+      <div class="section-title-row">
+        <h2 id="levels-title">四档火力，逐级失控</h2>
+        <p class="section-desc">不是四个 EQ 预设，而是四条独立处理链。每一档都重新做削波、饱和、压缩与限幅。</p>
+      </div>
+    </div>
+    <div class="level-matrix" id="level-matrix"></div>
+    <div class="level-note">
+      <span class="level-note-mark">!</span>
+      <p><strong>响度不是免费的。</strong>越往上，动态越小、失真越多、耳朵越累。建议先用「普通炸麦版」试听，再逐级加码。</p>
+    </div>
+  </section>
+
+  <section class="export-section" id="export" aria-labelledby="export-title">
+    <div class="section-head">
+      <p class="section-index">03 / EXPORT</p>
+      <div class="section-title-row">
+        <h2 id="export-title">带走的炸麦</h2>
+        <p class="section-desc">WAV 无损、MP3 分享、FLAC 存档、OGG 流媒体、AIFF 进剪辑软件。四档可一次打包。</p>
+      </div>
+    </div>
+
+    <div class="export-grid">
+      <div class="panel export-panel">
+        <div class="export-controls">
+          <label class="field" for="filename">
+            <span>文件名</span>
+            <input type="text" id="filename" value="我的炸麦" maxlength="60" spellcheck="false" autocomplete="off">
+          </label>
+          <label class="field" for="sample-rate">
+            <span>导出采样率</span>
+            <select id="sample-rate">
+              <option value="source" selected>跟随音源</option>
+              <option value="44100">44.1 kHz</option>
+              <option value="48000">48 kHz</option>
+            </select>
+          </label>
+          <label class="field" for="mp3-bitrate">
+            <span>MP3 码率</span>
+            <select id="mp3-bitrate">
+              <option value="320">320 kbps</option>
+              <option value="192" selected>192 kbps</option>
+              <option value="128">128 kbps</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="format-head">
+          <span>选择格式</span>
+          <span class="en">ONE CLICK · LOCAL ENCODE</span>
+        </div>
+        <div class="format-grid" id="format-grid" role="radiogroup" aria-label="导出格式"></div>
+
+        <div class="export-actions">
+          <button class="btn btn-primary" id="btn-export-one" type="button" disabled>导出当前档 <span class="btn-arrow" aria-hidden="true">↓</span></button>
+          <button class="btn btn-ghost" id="btn-export-all" type="button" disabled>四档打包 ZIP</button>
+          <button class="btn btn-ghost" id="btn-export-png" type="button" disabled>导出对比图 PNG</button>
+        </div>
+
+        <div class="progress" id="export-progress" hidden>
+          <div class="progress-head"><span id="progress-label">正在编码…</span><span class="mono" id="progress-pct">0%</span></div>
+          <div class="progress-track"><i id="progress-bar"></i></div>
+          <p class="progress-sub" id="progress-sub">请不要关闭页面。</p>
+        </div>
+
+        <p class="export-hint" id="export-hint">处理完成后即可导出。OGG 需要浏览器支持 Opus 编码。</p>
+      </div>
+
+      <aside class="panel export-aside">
+        <h3>输出备忘 <span class="en">NOTES</span></h3>
+        <ul class="notes">
+          <li><b>WAV 16 / 24 / 32f</b><span>通用无损。32f 适合继续后期。</span></li>
+          <li><b>MP3</b><span>分享用。响度已经锁死，转码不会再增肥。</span></li>
+          <li><b>FLAC</b><span>无损压缩，逐样本还原。</span></li>
+          <li><b>OGG / Opus</b><span>网页与流媒体友好，需要 Chrome / Edge。</span></li>
+          <li><b>AIFF</b><span>给 macOS 与视频剪辑软件。</span></li>
+          <li><b>ZIP</b><span>四档一次打包，附带对比图与参数说明。</span></li>
+        </ul>
+        <div class="aside-danger">
+          <span>HEARING DAMAGE IS PERMANENT</span>
+          <p>导出文件已经是成品响度。不要再在播放器里叠加增益，也不要长时间循环试听。</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="guide" id="guide" aria-labelledby="guide-title">
+    <div class="section-head">
+      <p class="section-index">04 / FIELD MANUAL</p>
+      <div class="section-title-row">
+        <h2 id="guide-title">使用说明</h2>
+        <p class="section-desc">三步完成。没有登录、没有队列、没有「正在上传」。</p>
+      </div>
+    </div>
+    <ol class="steps">
+      <li><span class="step-no">01</span><h3>放入音源</h3><p>拖入 MP3 / WAV / FLAC 等文件，或点选内置示例曲。建议先试 30 秒以内的片段。</p></li>
+      <li><span class="step-no">02</span><h3>选一档火力</h3><p>普通炸麦版保留最多动态；鞭炮版最响、最碎、最不讲理。点「开始炸麦」渲染。</p></li>
+      <li><span class="step-no">03</span><h3>试听并导出</h3><p>用 A/B 对比原曲，确认没有过度失真，再选择格式导出。四档可一键打包。</p></li>
+    </ol>
+    <div class="faq">
+      <details>
+        <summary>为什么导出的歌这么响？</summary>
+        <p>四档分别把综合响度推到约 -8 / -6 / -4.5 / -3.5 LUFS，并用真峰值限幅压住天花板。这是母带级的响度，普通播放器会显得非常炸。</p>
+      </details>
+      <details>
+        <summary>会上传我的歌吗？</summary>
+        <p>不会。页面是纯静态文件，没有后端接口。音频在浏览器内解码、处理、编码，刷新页面即清空。</p>
+      </details>
+      <details>
+        <summary>支持多长的音频？</summary>
+        <p>取决于设备内存。建议单次不超过 5 分钟；更长的音频请先剪成片段。处理时页面会短暂占用较多 CPU。</p>
+      </details>
+      <details>
+        <summary>OGG 导出是灰色的？</summary>
+        <p>OGG 使用 WebCodecs 的 Opus 编码器，目前主要在 Chrome / Edge 中可用。其他浏览器请选择 WAV、MP3 或 FLAC。</p>
+      </details>
+      <details>
+        <summary>「极致纯响鞭炮炸麦版」里噼里啪啦的声音是什么？</summary>
+        <p>在常规炸麦链之外，额外叠加了一层由原曲瞬态触发的合成鞭炮：高频爆裂、低频闷响，以及随节奏加密的噼啪声。它不是采样，是实时合成的。</p>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <span class="brand-mark small" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+    <span>ZAOMAI LAB</span>
+  </div>
+  <p>灵感来自 audio-edit 技能的 zaomai 配方 · 为响度而生，为耳朵负责</p>
+  <p class="footer-warn">请勿在驾驶、操作机械或佩戴入耳式耳机时长时间试听高响度音频。</p>
+  <a href="#top" class="footer-top">回到顶部 ↑</a>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="drop-overlay" id="drop-overlay" aria-hidden="true"><div><strong>松手，开炸</strong><span>音频只在本机处理</span></div></div>
+
+<div class="modal" id="safety-modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="safety-title">
+    <p class="modal-kicker">SAFETY INTERLOCK</p>
+    <h2 id="safety-title">先把音量调低。</h2>
+    <p>这一页的输出最高可达 <b>-3.5 LUFS</b>，比大多数流媒体歌曲响 4–6 dB。突然播放可能损伤听力或耳机。</p>
+    <ul>
+      <li>把系统音量降到 30% 以下</li>
+      <li>不要使用入耳式耳机开最大音量</li>
+      <li>试听超过 10 分钟请休息</li>
+    </ul>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="btn-safety-ok" type="button">我已调低音量，开始</button>
+      <button class="btn btn-ghost" id="btn-safety-cancel" type="button">取消</button>
+    </div>
+  </div>
+</div>
+
+<noscript><div class="noscript">这个工作台需要 JavaScript。请启用后刷新页面。</div></noscript>
+
+<script src="vendor/lame.min.js"></script>
+<script src="src/dsp.js"></script>
+<script src="src/exporters.js"></script>
+<script src="src/demo-track.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>

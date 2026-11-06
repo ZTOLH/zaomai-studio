@@ -1,0 +1,16 @@
+# 测试临时文件
+test/.chrome-*/
+test/.chrome-*
+test/_*
+test/downloads/
+test/exports/
+test/shot-*.png
+test/shot-*.json
+test/shot-*-console.txt
+test/autotest-*
+test/probe*
+
+# 系统文件
+Thumbs.db
+desktop.ini
+.DS_Store

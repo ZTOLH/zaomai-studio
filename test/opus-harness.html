@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>RUNNING</title>
+<style>
+  body { font: 13px/1.5 Consolas, "Courier New", monospace; background: #101014; color: #e6e6e6; margin: 24px; }
+  h1 { font-size: 16px; color: #9fe3b0; }
+  pre { white-space: pre-wrap; word-break: break-all; }
+  #status { background: #181820; padding: 10px; border-left: 3px solid #4a8; }
+  #b64 { background: #101018; padding: 10px; color: #7f7; max-height: 60px; overflow: hidden; }
+  .hint { color: #888; }
+</style>
+</head>
+<body>
+<h1>ZAOMAI STUDIO · OGG Opus 导出自动验证页</h1>
+<p class="hint">2 秒立体声 48 kHz 正弦（左 440 Hz / 右 660 Hz）→ <code>ZaomaiExport.encode('ogg', ...)</code> → base64 写入 #b64。<br>
+用法：headless Chrome 加 <code>--virtual-time-budget=15000 --dump-dom</code> 打开本页，从 &lt;pre id="b64"&gt; 中取出 base64 解码为 .ogg 后 ffprobe 验证。</p>
+<pre id="status">RUNNING</pre>
+<pre id="b64"></pre>
+<script src="../vendor/lame.min.js"></script>
+<script src="../src/exporters.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var statusEl = document.getElementById('status');
+  var b64El = document.getElementById('b64');
+  var log = [];
+  var startedAt = Date.now();
+
+  function logLine(s) {
+    log.push(s);
+    statusEl.textContent = log.join('\n');
+  }
+
+  // 虚拟时间保活：只要任务没结束就持续排队定时器。否则 --virtual-time-budget 会在
+  // WebCodecs 的真实异步编码完成前就耗尽虚拟时间并 dump 出半成品页面。
+  // 任务结束后停止保活，虚拟时间立刻跳到预算末尾，--dump-dom 拿到完整结果。
+  var keepAlive = true;
+  (function keep() {
+    if (!keepAlive) return;
+    setTimeout(keep, 0);
+  })();
+
+  var B64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  function toBase64(bytes) {
+    var out = '';
+    for (var i = 0; i < bytes.length; i += 3) {
+      var b0 = bytes[i];
+      var b1 = (i + 1 < bytes.length) ? bytes[i + 1] : 0;
+      var b2 = (i + 2 < bytes.length) ? bytes[i + 2] : 0;
+      out += B64_CHARS.charAt(b0 >> 2);
+      out += B64_CHARS.charAt(((b0 & 3) << 4) | (b1 >> 4));
+      if (i + 1 < bytes.length) out += B64_CHARS.charAt(((b1 & 15) << 2) | (b2 >> 6));
+      if (i + 2 < bytes.length) out += B64_CHARS.charAt(b2 & 63);
+    }
+    return out;
+  }
+
+  (async function () {
+    var b64 = '';
+    try {
+      logLine('ZaomaiExport=' + (typeof window.ZaomaiExport));
+      logLine('AudioEncoder=' + (typeof window.AudioEncoder));
+      logLine('AudioData=' + (typeof window.AudioData));
+      if (!window.ZaomaiExport) throw new Error('exporters.js 未加载');
+
+      var fmt = null;
+      for (var i = 0; i < window.ZaomaiExport.FORMATS.length; i++) {
+        if (window.ZaomaiExport.FORMATS[i].id === 'ogg') fmt = window.ZaomaiExport.FORMATS[i];
+      }
+      logLine('FORMATS.ogg=' + (fmt ? JSON.stringify(fmt) : 'MISSING'));
+      logLine('isSupported(ogg)=' + window.ZaomaiExport.isSupported('ogg'));
+
+      var sr = 48000;
+      var n = sr * 2;
+      var left = new Float32Array(n);
+      var right = new Float32Array(n);
+      for (var j = 0; j < n; j++) {
+        left[j] = 0.7 * Math.sin(2 * Math.PI * 440 * j / sr);
+        right[j] = 0.7 * Math.sin(2 * Math.PI * 660 * j / sr);
+      }
+
+      var t0 = Date.now();
+      var promise = window.ZaomaiExport.encode('ogg', [left, right], sr, { bitrate: 128 }, function (p) {
+        logLine('progress=' + p.toFixed(2));
+      });
+      var settled = false;
+      var rejected = null;
+      promise.then(function () { settled = true; }, function (e) { settled = true; rejected = e; });
+
+      // 主动轮询（同时保活虚拟时间），让页面在 dump 之前完成真实异步编码
+      var spins = 0;
+      var MAX_SPINS = 60000;
+      while (!settled && spins < MAX_SPINS) {
+        spins++;
+        await new Promise(function (r) { setTimeout(r, 0); });
+      }
+      if (rejected) throw rejected;
+      if (!settled) throw new Error('编码超时：' + MAX_SPINS + ' 次轮询仍未完成');
+
+      var blob = await promise;
+      var ms = Date.now() - t0;
+      logLine('blob.type=' + blob.type);
+      logLine('blob.size=' + blob.size);
+      logLine('encode.ms=' + ms + ' spins=' + spins);
+      var bytes = new Uint8Array(await blob.arrayBuffer());
+      logLine('bytes=' + bytes.length);
+      logLine('magic=' + String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]) + ' version=' + bytes[4]);
+
+      b64 = toBase64(bytes);
+      b64El.textContent = b64;
+      logLine('b64.length=' + b64.length);
+      logLine('RESULT=OK');
+    } catch (e) {
+      logLine('ERROR=' + (e && e.message ? e.message : String(e)));
+      logLine('STACK=' + (e && e.stack ? e.stack : ''));
+      logLine('RESULT=FAIL');
+    }
+    document.title = 'DONE';
+    logLine('DONE total.ms=' + (Date.now() - startedAt));
+    keepAlive = false;
+  })();
+})();
+</script>
+</body>
+</html>
