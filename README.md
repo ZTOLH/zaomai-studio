@@ -11,6 +11,8 @@
 
 没有后端、没有上传、没有登录。双击 `index.html` 就能用。
 
+**在线演示：** <https://ztolh.github.io/zaomai-studio/>
+
 ![工作台](docs/screenshots/console.jpg)
 
 ![四档火力](docs/screenshots/levels.jpg)
